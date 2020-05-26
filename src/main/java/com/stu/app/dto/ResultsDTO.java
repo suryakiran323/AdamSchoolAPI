@@ -11,18 +11,18 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 @Component
 @Data
 @JsonInclude(value=Include.NON_NULL)
-public class StudentDTO {
+public class ResultsDTO {
 	Integer key;
-	String firstName;
-	String lastName;
-	String middleName;
-	Date dob;
-	String gender;
-	Integer courseId;//selected course ID
-	Integer parentId;
-	String statusStr;
-	String courseName;
-	Parent parentInfo;
+	Integer examId;
+	String examType;
 	
+	Integer studentId;
+	String studentName;
 	
+	Integer english;
+	Integer maths;
+	Integer writing;
+	Integer genAbility;
+	Integer others;
+	Date conductDtm;
 }

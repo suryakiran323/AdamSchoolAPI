@@ -19,6 +19,9 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.mail.javamail.MimeMessagePreparator;
 import org.springframework.stereotype.Service;
 
+import com.stu.app.config.Constants;
+import com.stu.app.model.Student;
+
 @Service
 @Log4j2
 public class NotificationService {
@@ -83,6 +86,22 @@ public class NotificationService {
             System.err.println(ex.getMessage());
         }
     }
+
+	public void sendToParentMail(Student student) {
+		String message = "Dear Parent,\nyour account is created successfully\n Click on the below link to activate.\n\n<a href='{actlink}'>Activate your account</a>"
+				+ "\n\nRegards,\nAdams school,\nAdministrator.";
+		
+		message = message.replace("{actlink}", Constants.ACTIVATE_URL+student.getParent().getId());
+		sendMail(student.getParent().getEmail(), "Account Verification", message);	
+		
+	}
+
+	public void sendToParentStudentAdded(Student student) {
+		String message = "Dear Parent,\nyour account is added new Student into your account\n\nRegards,\nAdams school,\nAdministrator.";
+		
+		sendMail(student.getParent().getEmail(), "New Student Added to your Account", message);	
+		
+	}
     
     
 }

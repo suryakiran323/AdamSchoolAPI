@@ -4,7 +4,7 @@ import org.springframework.http.HttpStatus;
 
 
 
-public class AccountsRTException  extends RuntimeException {
+public class AccountsRTException extends RuntimeException {
 
 	private static final long serialVersionUID = -3578710730813801715L;
 

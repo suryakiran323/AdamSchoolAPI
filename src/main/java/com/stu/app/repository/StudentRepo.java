@@ -15,4 +15,7 @@ public interface StudentRepo extends JpaRepository<Student, Integer> {
 	
 	@Query("from Student s where s.parent.id=:parentId and s.course.name like :courseName and (s.firstName like :name or s.lastName like :name)")
 	List<Student> fiterStudents(@Param("parentId") Integer parentId, @Param("courseName") String courseName, @Param("name") String name);
+
+	@Query("from Student s where s.course.name like :courseName and (s.firstName like :name or s.lastName like :name)")
+	List<Student> getStudentsByCoursename(@Param("courseName") String courseName, @Param("name") String name);
 }

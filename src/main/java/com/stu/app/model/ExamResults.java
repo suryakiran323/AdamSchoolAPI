@@ -12,50 +12,47 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 import lombok.Data;
+
+/**
+ * @author Admin
+ *Student Class course details
+ */
 @Entity
-@Table(name = "student")
+@Table(name = "examresults")
 @Data
-public class Student {
+public class ExamResults {
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	Integer id;
 	
-	@Column(name = "first_name")
-	String firstName;
-	
-	@Column(name = "last_name") 
-	String lastName;
-	
-	@Column(name = "middle_name")
-	String middleName;
-	
-	@Column(name = "email")
-	String email;
-	
-	@Column(name = "dob")
-	Date dob;
-	
-	@Column(name = "gender")
-	String gender;
+	@ManyToOne
+	@JoinColumn(name = "examid")
+	ExamDetails examDetails;
 	
 	@ManyToOne
-	@JoinColumn(name = "courseid")
-	Course course;
+	@JoinColumn(name = "studentId")
+	Student student;
 	
-	@ManyToOne
-	@JoinColumn(name = "parentid")
-	Users parent;
+	@Column(name = "english")
+	Integer english;
 	
-	@Column(name="relation")
-	String relation;
+	@Column(name = "maths")
+	Integer maths;
 	
-	@Column(name = "status")
-	Integer status;
+	@Column(name = "writing")
+	Integer writing;
 	
+	@Column(name = "gen_ability")
+	Integer genAbility;
+	
+	@Column(name = "others")
+	Integer others;
 	
 	@Column(name = "createDtm")
 	Date createDtm;
 	
 	@Column(name = "updateDtm")
 	Date updateDtm;
+	
 }

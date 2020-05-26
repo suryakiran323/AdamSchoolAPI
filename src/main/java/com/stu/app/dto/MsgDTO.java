@@ -8,21 +8,16 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
 @Component
 @Data
 @JsonInclude(value=Include.NON_NULL)
-public class StudentDTO {
-	Integer key;
-	String firstName;
-	String lastName;
-	String middleName;
-	Date dob;
-	String gender;
-	Integer courseId;//selected course ID
-	Integer parentId;
-	String statusStr;
-	String courseName;
-	Parent parentInfo;
-	
-	
+public class MsgDTO {
+	Integer fromUserId;
+	String fromName;
+	Integer toUserId;
+	String toName;
+	String message;
+	Boolean viewInd;
+	Date createDtm;
 }

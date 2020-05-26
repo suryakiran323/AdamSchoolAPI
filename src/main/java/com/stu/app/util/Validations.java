@@ -11,6 +11,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
+import com.stu.app.dto.ExamDTO;
+import com.stu.app.dto.MsgDTO;
+import com.stu.app.dto.ResultsDTO;
 import com.stu.app.dto.SignupDTO;
 import com.stu.app.dto.StudentDTO;
 import com.stu.app.dto.UserCredentialsDTO;
@@ -83,9 +86,10 @@ public class Validations {
 		}
 		if(StringUtils.isBlank(postDTO.getLastName())){
 			throw new AccountsRTException(HttpStatus.BAD_REQUEST,  "Last Name is required");
-		}if(postDTO.getCourseId()!=null && postDTO.getCourseId()>0){
-			throw new AccountsRTException(HttpStatus.BAD_REQUEST,  "Please select class from the dropdown");
-		}if(postDTO.getParentId()!=null && postDTO.getParentId()>0){
+		}if(postDTO.getCourseId()==null || postDTO.getCourseId()==0){
+			throw new AccountsRTException(HttpStatus.BAD_REQUEST,  "Please select class for the student");
+		}
+		if(StringUtils.isBlank(postDTO.getParentInfo().getEmail())){
 			throw new AccountsRTException(HttpStatus.BAD_REQUEST,  "Please select parent name from the dropdown");
 		}
 	}
@@ -96,6 +100,21 @@ public class Validations {
 	}
 	
 	public void validateUserObj(@Valid UserDTO postDTO) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void validateExamObj(@Valid ExamDTO examDTO) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void validateResultsDTO(@Valid ResultsDTO examDTO) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public void validateMsgObj(@Valid MsgDTO postDTO) {
 		// TODO Auto-generated method stub
 		
 	}

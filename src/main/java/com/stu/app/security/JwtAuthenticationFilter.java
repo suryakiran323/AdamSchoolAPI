@@ -42,13 +42,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
 
             if ( tokenProvider.validateToken(jwt)) {
-            	log.info("calling filter inside>>>>>>>>>>>>>>>>>>>");
+            	log.info("calling filter inside>>>>>>>>>>>>>>>>>>>"+userId);
             	
 					/*
 	                    Note that you could also encode the user's username and roles inside JWT claims
 	                    and create the UserDetails object by parsing those claims from the JWT.
 	                    That would avoid the following database hit. It's completely up to you.
 					 */
+            	request.setAttribute("userId", userId);
+            	
                 UserDetails userDetails = userRepoService.loadUserById(userId);
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));

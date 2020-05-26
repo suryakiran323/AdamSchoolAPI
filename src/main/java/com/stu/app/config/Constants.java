@@ -1,12 +1,13 @@
 package com.stu.app.config;
 
 public class Constants {
-
+	public static final String ACTIVATE_URL = "http://localhost:8080/api/account/activate?token=";
 	public enum Response {
 			OK(1),
 			ERROR(2),
 			UserExists(3),
-			UserDoesNotExists(4);
+			UserDoesNotExists(4),
+			RecordExists(5);
 			
 			private final int value;
 
