@@ -62,9 +62,9 @@ public class BaseController {
 	}
 	
 	@GetMapping("markread/{msgid}")
-	public ResponseEntity<AppResponse> updateMsg(@RequestParam("msgid") HttpServletRequest request){
+	public ResponseEntity<AppResponse> updateMsg(@RequestParam("msgid")Integer msgId,  HttpServletRequest request){
 		return new ResponseEntity<>(new AppResponse(AppResponse.SUCCESS,
-				msgService.getMessages(request)), HttpStatus.OK);
+				msgService.updateMsg(msgId)), HttpStatus.OK);
 	}
 	
 }

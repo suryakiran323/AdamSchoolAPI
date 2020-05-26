@@ -94,10 +94,13 @@ public class MsgService {
 	@Async
 	public Object updateMsg(Integer msgId) {
 		Messages msg = msgRepo.findById(msgId).get();
+		//List<Messages> msgs = msgRepo.findAllBy
+		//msg.getCreateDtm()
 		msg.setViewInd(Boolean.TRUE);
 		msg.setUpdateDtm(new Date());
 		msgRepo.save(msg);
 		return AppResponse.SUCCESS;
 	}
+
     
 }

@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.stu.app.config.Constants;
@@ -150,6 +151,13 @@ public class AccountController {
 	  public ResponseEntity<AppResponse> getParentUsers(HttpServletRequest request) {
 	    return new ResponseEntity<>(new AppResponse(AppResponse.SUCCESS, authenticationService.getUsers(Constants.User.PARENT, request)), HttpStatus.OK);
 	  }  
-	  
+	  /**
+	 * @param request
+	 * @return
+	 */
+	  @GetMapping("activate")
+	  public ResponseEntity<AppResponse> getActivate(@RequestParam("token") Integer token,  HttpServletRequest request) {
+	    return new ResponseEntity<>(new AppResponse(AppResponse.SUCCESS, authenticationService.(Constants.User.PARENT, request)), HttpStatus.OK);
+	  } 
   
 }
