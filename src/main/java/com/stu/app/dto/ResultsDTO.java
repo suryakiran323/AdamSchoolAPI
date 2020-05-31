@@ -15,6 +15,7 @@ public class ResultsDTO {
 	Integer key;
 	Integer examId;
 	String examType;
+	Integer rank;
 	
 	Integer studentId;
 	String studentName;
@@ -24,5 +25,8 @@ public class ResultsDTO {
 	Integer writing;
 	Integer genAbility;
 	Integer others;
+	
+	Integer totalmarks;
 	Date conductDtm;
+	
 }

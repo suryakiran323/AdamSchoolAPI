@@ -49,6 +49,9 @@ public class Users {
 	@Column(name = "password")
 	String password;
 	
+	@Column(name = "status")
+	String status;
+	
 	@Column(name = "createDtm")
 	Date createDtm;
 	

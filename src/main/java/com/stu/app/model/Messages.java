@@ -36,6 +36,10 @@ public class Messages {
 	@Column(name="message")
 	String message;
 	
+	@ManyToOne
+	@JoinColumn(name="studentId")
+	Student student;
+	
 	@Column(name= "viewInd")
 	Boolean viewInd;
 	

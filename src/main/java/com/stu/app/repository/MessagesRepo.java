@@ -2,7 +2,6 @@ package com.stu.app.repository;
 
 import java.util.List;
 
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -15,11 +14,14 @@ import com.stu.app.model.Messages;
 public interface MessagesRepo extends JpaRepository<Messages, Integer>{
 
 
-	@Query("from Messages where (fromUserId.id= :userId or toUserId=:userId) order by createDtm desc")
+	@Query("from Messages where (fromUserId.id= :userId or toUserId=:userId) and student is null order by createDtm desc")
 	List<Messages> findAllByToUserId(@Param("userId") Integer userId, Pageable pageable);
 
-	@Query("from Messages where (fromUserId.id= :userId or toUserId=:userId) and unread=:unread order by createDtm desc")
-	List<Messages> findAllByToUserId(@Param("userId") Integer userId,@Param("unread") Boolean read, Pageable pageable);
+	@Query("from Messages where (fromUserId.id= :userId or toUserId=:userId) and unread=:unread and student is null  order by createDtm desc")
+	List<Messages> findAllByToUserId(@Param("userId") Integer userId, @Param("unread") Boolean read, Pageable pageable);
+
+	@Query("from Messages where student.id=:stuid order by createDtm desc")
+	List<Messages> getAllStudentFeedbacks(@Param("stuid") Integer stuid, Pageable pageable);
 
 
 

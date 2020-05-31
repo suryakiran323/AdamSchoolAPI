@@ -14,14 +14,15 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import com.stu.app.dto.MsgDTO;
 import com.stu.app.exceptions.AccountsRTException;
 import com.stu.app.model.Messages;
+import com.stu.app.model.Student;
 import com.stu.app.model.Users;
 import com.stu.app.repository.MessagesRepo;
+import com.stu.app.repository.StudentRepo;
 import com.stu.app.repository.UsersRepo;
 import com.stu.app.util.AppResponse;
 
@@ -34,6 +35,9 @@ public class MsgService {
 	@Autowired
 	MessagesRepo msgRepo;
 	
+	@Autowired
+	StudentRepo studentRepo;
+	
 	/**
 	 * @param postDTO
 	 * @param request
@@ -42,9 +46,8 @@ public class MsgService {
 	public Object sendMsg(@Valid MsgDTO postDTO, HttpServletRequest request) {
 		Optional<Users> fromUser = usersRepo.findById(postDTO.getFromUserId());
 		if(!fromUser.isPresent()){
-			log.error("From User Id not present in the input");
-			throw new AccountsRTException(HttpStatus.BAD_REQUEST,
-					"From User Id not present");
+			Integer userId = (Integer)request.getAttribute("userId");
+			fromUser = usersRepo.findById(userId);
 		}
 		Optional<Users> toUser = usersRepo.findById(postDTO.getToUserId());
 		if(!toUser.isPresent()){
@@ -52,12 +55,17 @@ public class MsgService {
 			throw new AccountsRTException(HttpStatus.BAD_REQUEST,
 					"To User Id not present");
 		}
+		Optional<Student> stuOpt = studentRepo.findById(postDTO.getStudentId());
+		
 		Messages msg = new Messages();
 		msg.setCreateDtm(new Date());
 		msg.setFromUserId(fromUser.get());
 		msg.setToUserId(toUser.get());
 		msg.setMessage(postDTO.getMessage());
 		msg.setViewInd(Boolean.FALSE);
+		if(stuOpt.isPresent()){
+			msg.setStudent(stuOpt.get());
+		}
 		msgRepo.save(msg);
 		return AppResponse.SUCCESS;
 	}
@@ -91,15 +99,47 @@ public class MsgService {
 		return msgDto;
 	}
 	
-	@Async
+	//@Async
 	public Object updateMsg(Integer msgId) {
 		Messages msg = msgRepo.findById(msgId).get();
 		//List<Messages> msgs = msgRepo.findAllBy
 		//msg.getCreateDtm()
-		msg.setViewInd(Boolean.TRUE);
-		msg.setUpdateDtm(new Date());
-		msgRepo.save(msg);
+		
+		try {
+			Thread.sleep(5000);
+			msg.setViewInd(Boolean.TRUE);
+			msg.setUpdateDtm(new Date());
+			msgRepo.save(msg);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 		return AppResponse.SUCCESS;
+	}
+
+	public Object getStuFeedbacks(Integer stuid, HttpServletRequest request) {
+		Integer userId = (Integer)request.getAttribute("userId");
+		Integer size = 20;
+		Integer offset =0;
+		if(request.getParameter("size") != null)
+			size = Integer.parseInt(request.getParameter("size"));
+		if(request.getParameter("offset") != null)
+			offset = Integer.parseInt(request.getParameter("offset"));
+
+		List<Messages> msgs =  msgRepo.getAllStudentFeedbacks(stuid,  PageRequest.of(offset, size));
+		
+		List<MsgDTO> msgDto = new ArrayList<MsgDTO>();
+		msgs.forEach(m->{
+			MsgDTO msgdto = new MsgDTO();
+			msgdto.setMessage(m.getMessage());
+			msgdto.setCreateDtm(m.getCreateDtm());
+			msgdto.setFromUserId(m.getFromUserId().getId());
+			msgdto.setToUserId(m.getToUserId().getId());
+			msgdto.setFromName(userId == m.getFromUserId().getId()?"Me":m.getFromUserId().getFirstName());
+			msgdto.setToName(userId == m.getToUserId().getId()?"Me":m.getToUserId().getFirstName());
+			msgdto.setStudentname(m.getStudent().getFirstName()+" "+ m.getStudent().getLastName());
+			msgDto.add(msgdto);
+		});
+		return msgDto;
 	}
 
     

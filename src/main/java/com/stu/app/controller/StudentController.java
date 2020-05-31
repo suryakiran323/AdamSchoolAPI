@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.stu.app.config.Constants;
 import com.stu.app.dto.ExamDTO;
 import com.stu.app.dto.ResultsDTO;
 import com.stu.app.dto.StudentDTO;
@@ -48,7 +49,7 @@ public class StudentController {
 		validations.validateStudentObj(postDTO);
 
 		return new ResponseEntity<>(new AppResponse(AppResponse.SUCCESS,
-				studentService.createStudent(postDTO, request)), HttpStatus.OK);
+				studentService.createStudent(postDTO, request, Constants.Status.ACTIVE.toString())), HttpStatus.OK);
 	}
 
 	/**
@@ -83,7 +84,7 @@ public class StudentController {
 	 * @return
 	 */
 	@GetMapping("students/{parentId}")
-	public ResponseEntity<AppResponse> getUsers(
+	public ResponseEntity<AppResponse> getStudents(
 			@PathVariable("parentId") Integer parentId,
 			@RequestParam(required = false, name = "clourseName") String courseName,
 			@RequestParam(required = false, name = "name") String name,
@@ -101,7 +102,7 @@ public class StudentController {
 	 * @return
 	 */
 	@GetMapping("students")
-	public ResponseEntity<AppResponse> getUsers(
+	public ResponseEntity<AppResponse> getStudents(
 			@RequestParam(required = false, name = "course") String courseName,
 			@RequestParam(required = false, name = "name", defaultValue="") String name,
 			HttpServletRequest request) {
@@ -191,4 +192,9 @@ public class StudentController {
 				studentService.getStudentMarks(id, examId, request)), HttpStatus.OK);
 	}
 	
+	@GetMapping("sturank/{stuid}/{examid}")
+	public ResponseEntity<AppResponse> getStuRank(@PathVariable("stuid") Integer id ,@PathVariable("examid") Integer examId , HttpServletRequest request) {
+		return new ResponseEntity<>(new AppResponse(AppResponse.SUCCESS,
+				studentService.getStuRank(id, examId, request)), HttpStatus.OK);
+	}
 }

@@ -50,7 +50,7 @@ public class Student {
 	String relation;
 	
 	@Column(name = "status")
-	Integer status;
+	String status;
 	
 	
 	@Column(name = "createDtm")

@@ -115,8 +115,12 @@ public class Validations {
 	}
 
 	public void validateMsgObj(@Valid MsgDTO postDTO) {
-		// TODO Auto-generated method stub
-		
+		if(postDTO.getFromUserId()==null){
+			throw new AccountsRTException(HttpStatus.BAD_REQUEST,  "From user id is missing");
+		}
+		if(postDTO.getToUserId()==null){
+			throw new AccountsRTException(HttpStatus.BAD_REQUEST,  "Please select the User to send message");
+		}
 	}
 	
 }

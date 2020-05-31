@@ -11,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 @Data
 @JsonInclude(value=Include.NON_NULL)
 public class Parent {
+	Integer key;
 	String firstName;
 	String lastName;
 	String middleName;

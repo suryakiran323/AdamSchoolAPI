@@ -55,4 +55,7 @@ public class ExamResults {
 	@Column(name = "updateDtm")
 	Date updateDtm;
 	
+	@Column(name="totalmarks")
+	Integer totalMarks;
+	
 }

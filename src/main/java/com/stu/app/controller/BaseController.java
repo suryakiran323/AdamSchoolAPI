@@ -9,14 +9,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.stu.app.dto.MsgDTO;
-import com.stu.app.dto.StudentDTO;
 import com.stu.app.service.MsgService;
 import com.stu.app.util.AppResponse;
 import com.stu.app.util.Validations;
@@ -62,9 +61,14 @@ public class BaseController {
 	}
 	
 	@GetMapping("markread/{msgid}")
-	public ResponseEntity<AppResponse> updateMsg(@RequestParam("msgid")Integer msgId,  HttpServletRequest request){
+	public ResponseEntity<AppResponse> updateMsg(@PathVariable("msgid")Integer msgId,  HttpServletRequest request){
 		return new ResponseEntity<>(new AppResponse(AppResponse.SUCCESS,
 				msgService.updateMsg(msgId)), HttpStatus.OK);
 	}
 	
+	@GetMapping("feedback/{stu}")
+	public ResponseEntity<AppResponse> getStuFeedbacks(@PathVariable("stu") Integer stuid, HttpServletRequest request){
+		return new ResponseEntity<>(new AppResponse(AppResponse.SUCCESS,
+				msgService.getStuFeedbacks(stuid, request)), HttpStatus.OK);
+	} 
 }

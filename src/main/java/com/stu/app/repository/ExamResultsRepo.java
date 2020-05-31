@@ -2,6 +2,7 @@ package com.stu.app.repository;
 
 import java.util.List;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -21,4 +22,7 @@ public interface ExamResultsRepo extends JpaRepository<ExamResults, Integer> {
 	List<ExamResults> findExamResults(@Param("studentId")Integer studentId);
 
 	ExamResults findByStudentAndExamDetails(Student student, ExamDetails examDetails);
+	
+	@Query("from ExamResults where examDetails.id =:examId Order by totalMarks desc")
+	List<ExamResults> getTopStuResults(@Param("examId") Integer examId, Pageable pageable);
 }

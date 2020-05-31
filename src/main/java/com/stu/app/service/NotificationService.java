@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 
 import com.stu.app.config.Constants;
 import com.stu.app.model.Student;
+import com.stu.app.model.Users;
 
 @Service
 @Log4j2
@@ -45,7 +46,7 @@ public class NotificationService {
 
         mailMessage.setFrom("jeeva.mca04@gmail.com");
 
-        mailSender.send(mailMessage);
+       // mailSender.send(mailMessage);
         log.info("Email sent successfully"
         		);
     }
@@ -100,6 +101,23 @@ public class NotificationService {
 		String message = "Dear Parent,\nyour account is added new Student into your account\n\nRegards,\nAdams school,\nAdministrator.";
 		
 		sendMail(student.getParent().getEmail(), "New Student Added to your Account", message);	
+		
+	}
+
+	public void sendCredentials(Users user) {
+		String message = "Dear Parent,\nyour account is activated successfully\n Here is the password: adams@123" 
+				+ "\n\nRegards,\nAdams school,\nAdministrator.";
+		
+		sendMail(user.getEmail(), "Account Verification", message);	
+		
+	}
+
+	public void sendFacultyMail(Users users) {
+		String message = "Dear Faculty,\nyour account is created successfully\n Click on the below link to activate.\n\n<a href='{actlink}'>Activate your account</a>"
+				+ "\n\nRegards,\nAdams school,\nAdministrator.";
+		
+		message = message.replace("{actlink}", Constants.ACTIVATE_URL+users.getId());
+		sendMail(users.getEmail(), "Account Verification", message);
 		
 	}
     

@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.stu.app.config.Constants;
+import com.stu.app.dto.StudentDTO;
 import com.stu.app.dto.UserDTO;
 import com.stu.app.dto.SignInResponseDTO;
 import com.stu.app.dto.SignupDTO;
@@ -53,21 +54,7 @@ public class AccountController {
 	    }
 	  }
 	  
-	  /**
-	 * @param postDTO
-	 * @param request
-	 * @return
-	 */
-	@PostMapping("parentsignup")
-	  public ResponseEntity<AppResponse> createUser(@Valid @RequestBody SignupDTO postDTO,  HttpServletRequest request) {
-	    postDTO.setUsertype(Constants.User.PARENT);
-	    try{
-	    	validations.validateSignupObj(postDTO);
-		    return new ResponseEntity<>(new AppResponse(AppResponse.SUCCESS, authenticationService.createUser(postDTO, request)), HttpStatus.OK);
-		 }catch(AccountsRTException ex ){
-	    	return new ResponseEntity<>(new AppResponse(AppResponse.FAIL, ex.getMessage()), ex.getHttpStatus()); 
-	    }
-	  }
+	 
 	
 	 /**
 		 * @param postDTO
@@ -156,8 +143,44 @@ public class AccountController {
 	 * @return
 	 */
 	  @GetMapping("activate")
-	  public ResponseEntity<AppResponse> getActivate(@RequestParam("token") Integer token,  HttpServletRequest request) {
-	    return new ResponseEntity<>(new AppResponse(AppResponse.SUCCESS, authenticationService.(Constants.User.PARENT, request)), HttpStatus.OK);
+	  public String getActivate(@RequestParam("token") Integer token,  HttpServletRequest request) {
+	    return authenticationService.activeUser(token, request);
 	  } 
-  
+	  
+	  /**
+		 * @param postDTO
+		 * @param request
+		 * @return
+		 */
+		@PostMapping("parentenrole")
+		public ResponseEntity<AppResponse> parentenrole(
+				@Valid @RequestBody StudentDTO postDTO, HttpServletRequest request) {
+			validations.validateStudentObj(postDTO);
+
+			return new ResponseEntity<>(new AppResponse(AppResponse.SUCCESS,
+					authenticationService.parentEnrole(postDTO, request)), HttpStatus.OK);
+		}
+		
+		/**
+		 * @param postDTO
+		 * @param request
+		 * @return
+		 */
+		@GetMapping("enrolements")
+		public ResponseEntity<AppResponse> getEnrolements( HttpServletRequest request) {
+
+			return new ResponseEntity<>(new AppResponse(AppResponse.SUCCESS,
+					authenticationService.getEnrolements()), HttpStatus.OK);
+		}
+		/**
+		 * @param postDTO
+		 * @param request
+		 * @return
+		 */
+		@PutMapping("acceptenrolment/{parentId}")
+		public ResponseEntity<AppResponse> acceptEnrolment(@PathVariable("parentId") Integer parentId, @RequestParam("status") String status, HttpServletRequest request) {
+
+			return new ResponseEntity<>(new AppResponse(AppResponse.SUCCESS,
+					authenticationService.acceptEnrolment(parentId, status)), HttpStatus.OK);
+		}
 }

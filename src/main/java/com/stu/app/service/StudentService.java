@@ -13,6 +13,7 @@ import lombok.extern.log4j.Log4j2;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -75,7 +76,7 @@ public class StudentService {
 			
 			users.setType(Constants.User.PARENT); //Constants.User.FACULTY
 			users.setPassword(passwordEncoder.encode(dummyPwd));
-			
+			users.setStatus(Constants.Status.PENDING.toString());
 			users.setCreateDtm(new Date());
 		} catch (Exception e) {
 			log.error(e);
@@ -84,7 +85,7 @@ public class StudentService {
 
 	}
 	public Object createStudent(@Valid StudentDTO postDTO,
-			HttpServletRequest request) {
+			HttpServletRequest request, String status) {
 		log.info("starign create student");
 		boolean created = false;
 		try {
@@ -111,15 +112,16 @@ public class StudentService {
 				Users parent = usersRepo.findByEmail(postDTO.getParentInfo().getEmail());
 				if(parent ==null ){
 					parent  = getParentObject(postDTO);
+					parent.setStatus(status);
 					usersRepo.save(parent);
 					created = true;
-				}				
+				}
 				student.setParent(parent);				
 			}else{
 				log.error("parent data not found");
 				return Constants.Response.ERROR;
 			}
-			student.setStatus(Constants.Status.ACTIVE.getValue());
+			student.setStatus(status); 
 			studentRepo.save(student);
 			//sending email
 			if(created){
@@ -161,9 +163,7 @@ public class StudentService {
 			if (stu.getCourse() != null) {
 				stuDto.setCourseId(stu.getCourse().getId());
 				stuDto.setCourseName(stu.getCourse().getName());
-			}
-			stuDto.setStatusStr(stu.getStatus() == 1 ? Constants.Status.ACTIVE
-					.toString() : Constants.Status.INACTIVE.toString());
+			}			
 			stuDto.setKey(stu.getId());
 
 		} catch (Exception e) {
@@ -223,10 +223,9 @@ public class StudentService {
 
 	public List<StudentDTO> getStudents(Integer parentId, String courseName,
 			String name, HttpServletRequest request) {
-
-		List<Student> students = studentRepo.findAllByParentId(parentId);
+		Users parent = usersRepo.findById(parentId).get();
+		List<Student> students = studentRepo.findAllByParentAndStatus(parent, Constants.Status.ACTIVE.toString());
 		List<StudentDTO> dtos = new ArrayList<StudentDTO>();
-
 		students.forEach(s -> {
 			dtos.add(getStudentObject(s));
 
@@ -368,6 +367,7 @@ public class StudentService {
 			results.setStudent(stu.get());
 			results.setExamDetails(exam.get());
 			results.setCreateDtm(new Date());
+			results.setTotalMarks(marksDTO.getEnglish()+marksDTO.getMaths() + marksDTO.getGenAbility() + marksDTO.getWriting());
 			examResultsRepo.save(results);
 			return AppResponse.SUCCESS;
 		}catch(Exception e){
@@ -435,12 +435,44 @@ public class StudentService {
 			results.setStudent(stu.get());
 			results.setExamDetails(exam.get());
 			results.setUpdateDtm(new Date());
+			results.setTotalMarks(marksDTO.getEnglish()+marksDTO.getMaths() + marksDTO.getGenAbility() + marksDTO.getWriting());
 			examResultsRepo.save(results);			
 			return AppResponse.SUCCESS;
 		}catch(Exception e){
 			throw new AccountsRTException(HttpStatus.BAD_REQUEST,
 					e.getMessage().toString());
 		}		
+	}
+	public Object getStuRank(Integer id, Integer examId, HttpServletRequest request) {
+			List<ResultsDTO> resutls = new ArrayList<>();	
+		List<ExamResults> marks = null;
+			if(examId!=null && examId>0){
+				marks = examResultsRepo.getTopStuResults(examId, PageRequest.of(0, 30));
+				Boolean exists = false;
+				if(marks!=null && marks.size()>0){
+					for (ExamResults s : marks) {
+						if(s.getStudent().getId() == id)
+							exists = true;			
+						ResultsDTO dto = new ResultsDTO();
+						dto.setExamType(s.getExamDetails().getName());
+						dto.setStudentName(s.getStudent().getFirstName() + " " + s.getStudent().getLastName());
+						dto.setRank(resutls.size()+1);
+						dto.setTotalmarks(s.getTotalMarks());						
+						resutls.add(dto);
+						if(resutls.size()==5){
+							break;
+						}
+					}
+				}
+				if(!exists){
+					ExamResults stuResults = examResultsRepo.findExamResults(id, examId);
+					ResultsDTO dto = getExamResultDTO(stuResults);
+					dto.setRank(marks.size()+1);
+					resutls.add(getExamResultDTO(stuResults));
+				}
+				return resutls;
+			}
+			return AppResponse.FAIL;
 	}
 	
 

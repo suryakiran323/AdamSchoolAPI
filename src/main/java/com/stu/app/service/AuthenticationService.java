@@ -22,12 +22,15 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.stu.app.config.Constants;
+import com.stu.app.dto.Parent;
 import com.stu.app.dto.SignInResponseDTO;
 import com.stu.app.dto.SignupDTO;
+import com.stu.app.dto.StudentDTO;
 import com.stu.app.dto.UserCredentialsDTO;
 import com.stu.app.dto.UserDTO;
 import com.stu.app.exceptions.AccountsRTException;
 import com.stu.app.model.Address;
+import com.stu.app.model.Student;
 import com.stu.app.model.Users;
 import com.stu.app.repository.AddressRepo;
 import com.stu.app.repository.CourseRepo;
@@ -52,7 +55,8 @@ public class AuthenticationService {
 	AddressRepo addressRepo;
 	@Autowired
 	CourseRepo courseRepo;
-	
+	@Autowired
+	StudentService stuService;
 	@Autowired
 	NotificationService notification;
 	
@@ -145,18 +149,16 @@ public class AuthenticationService {
 			boolean sendInvite = false;
 			if(postDTO.getSecretkey()==null){
 				sendInvite = true;
-				postDTO.setSecretkey("password");
+				postDTO.setSecretkey("adams@123");
 			}
 			Users users = getUserObject(postDTO);
 			usersRepo.save(users);
 			if(sendInvite){
 				//send Invitation mial to faculty from administrator
-				notification.sendMail(users.getEmail(), "Signup Verification", "Account creation for you is done, \nYou need to verify your email "
-					+ "by providing below opt \n OPT: 9898\n\n Thanks, Support Team");
+				notification.sendFacultyMail(users);
 			}else{
 				// send confirmation mail verification as from signup
-				notification.sendMail(users.getEmail(), "Signup Verification", "Your signup process completed, \nPlease verify your email "
-						+ "by providing below opt \n OPT: 9898\n\n Thanks, Support Team");
+				notification.sendFacultyMail(users);
 			}
 			return Constants.Response.OK;
 		
@@ -174,9 +176,9 @@ public class AuthenticationService {
 		List<UserDTO> users = new ArrayList<>();
 		List<Users> dbUsers = null;
 		if(type == null){
-			dbUsers = usersRepo.findAll();
+			dbUsers = usersRepo.findAllByStatus(Constants.Status.ACTIVE.toString());
 		}else{
-			dbUsers = usersRepo.findAllByType(type);
+			dbUsers = usersRepo.findAllByTypeAndStatus(type, Constants.Status.ACTIVE.toString());
 		}
 		dbUsers.forEach(a->{
 				users.add(getUserDTO(a));
@@ -226,6 +228,9 @@ public class AuthenticationService {
 	}
 
 	public Object getUserById(Integer uid, HttpServletRequest request) {
+		if(uid ==null || uid == 0){
+			uid = (Integer)request.getAttribute("userId");
+		}
 		if(uid !=null && uid != 0){
 			Users user =  usersRepo.findById(uid).get();
 			if( user==null)
@@ -237,6 +242,68 @@ public class AuthenticationService {
 			throw new AccountsRTException(HttpStatus.BAD_REQUEST,
 					"InvalidData");
 		}
+	}
+
+	public String activeUser(Integer token, HttpServletRequest request) {
+		Users user =  usersRepo.findById(token).get();
+		if(user != null && user.getType().equals(Constants.User.FACULTY)){
+			user.setStatus(Constants.Status.ACTIVE.toString());
+			usersRepo.save(user);
+			notification.sendCredentials(user);
+			return "<h2>Your account is activated successfuly, check your mail to credentials</h2>";
+		}
+		return "<h1>Invalid Token or link got expired.</h1>";
+	}
+
+	public Object parentEnrole(@Valid StudentDTO postDTO, HttpServletRequest request) {
+		return stuService.createStudent(postDTO, request, Constants.Status.PENDING.toString());
+	}
+
+	public Object getEnrolements() {
+		
+		List<Users> parents = usersRepo.findAllByStatus(Constants.Status.PENDING.toString());
+		List<StudentDTO> enroments = new ArrayList<>();
+		parents.forEach(p->{
+			enroments.add(getSignupDTO(p));
+		});
+		return enroments;
+	}
+	
+	private StudentDTO getSignupDTO(Users parent) {
+		Parent users = new Parent();
+		StudentDTO student = new StudentDTO();
+
+		try {
+			BeanUtils.copyProperties(users, parent.getAddress());
+			BeanUtils.copyProperties(users, parent);
+			users.setKey(parent.getId());
+			List<Student> stus =  studentRepo.findAllByParentAndStatus(parent, Constants.Status.PENDING.toString());
+			if(stus.size()>0){
+				BeanUtils.copyProperties(student, stus.get(0));
+			}
+			student.setParentInfo(users);
+			return student;
+		} catch (Exception e) {
+			log.error(e);
+		}
+		return null;
+	}
+
+	public Object acceptEnrolment(Integer parentId, String status) {
+		
+		Users user =  usersRepo.findById(parentId).get();
+		if(user != null){
+			user.setStatus(status);
+			List<Student> stus = studentRepo.findAllByParentAndStatus(user, Constants.Status.PENDING.toString());
+			stus.forEach(s->{
+				s.setStatus(Constants.Status.ACTIVE.toString());
+				studentRepo.save(s);
+			});
+			usersRepo.save(user);
+			notification.sendCredentials(user);
+			return Constants.Response.OK;
+		}
+		return Constants.Response.ERROR;
 	}
 	
 }

@@ -17,10 +17,11 @@ public class StudentDTO {
 	String lastName;
 	String middleName;
 	Date dob;
+	String relation;
 	String gender;
 	Integer courseId;//selected course ID
 	Integer parentId;
-	String statusStr;
+	String status;
 	String courseName;
 	Parent parentInfo;
 	

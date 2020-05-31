@@ -17,6 +17,8 @@ public class MsgDTO {
 	String fromName;
 	Integer toUserId;
 	String toName;
+	Integer studentId;
+	String studentname;
 	String message;
 	Boolean viewInd;
 	Date createDtm;

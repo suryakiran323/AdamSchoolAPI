@@ -13,8 +13,11 @@ public interface UsersRepo  extends JpaRepository<Users, Integer>{
 	Users findByEmail(String email);
 
 	List<Users> findAllByType(String type);
-
+	
+	List<Users> findAllByTypeAndStatus(String type, String status);
 	//Optional<Users> findById(Integer id);
+
+	List<Users> findAllByStatus(String string);
 	
 	
 }
