@@ -93,7 +93,24 @@ public class StudentController {
 				studentService.getStudents(parentId, courseName + '%',
 						name + '%', request)), HttpStatus.OK);
 	}
-
+	
+	/**
+	 * @param parentId
+	 * @param courseName
+	 * @param name
+	 * @param request
+	 * @return
+	 */
+	@GetMapping("studentsbyparent")
+	public ResponseEntity<AppResponse> getStudentsByParentLogin(
+			@RequestParam(required = false, name = "clourseName") String courseName,
+			@RequestParam(required = false, name = "name") String name,
+			HttpServletRequest request) {
+		Integer userId = (Integer)request.getAttribute("userId");
+		return new ResponseEntity<>(new AppResponse(AppResponse.SUCCESS,
+				studentService.getStudents(userId, courseName + '%',
+						name + '%', request)), HttpStatus.OK);
+	}
 
 	/**
 	 * @param courseName
