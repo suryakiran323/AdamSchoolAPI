@@ -447,29 +447,27 @@ public class StudentService {
 			List<ResultsDTO> resutls = new ArrayList<>();	
 		List<ExamResults> marks = null;
 			if(examId!=null && examId>0){
-				marks = examResultsRepo.getTopStuResults(examId, PageRequest.of(0, 30));
-				Boolean exists = false;
+				marks = examResultsRepo.getTopStuResults(examId, PageRequest.of(0, 60));
+				Integer myrank = 0;
 				if(marks!=null && marks.size()>0){
 					for (ExamResults s : marks) {
-						if(s.getStudent().getId() == id)
-							exists = true;			
+						myrank++;
+						if(resutls.size()==6){
+							break;
+						}
 						ResultsDTO dto = new ResultsDTO();
 						dto.setExamType(s.getExamDetails().getName());
 						dto.setStudentName(s.getStudent().getFirstName() + " " + s.getStudent().getLastName());
-						dto.setRank(resutls.size()+1);
-						dto.setTotalmarks(s.getTotalMarks());						
-						resutls.add(dto);
-						if(resutls.size()==5){
-							break;
+						dto.setRank(myrank);
+						dto.setTotalmarks(s.getTotalMarks());
+						if(resutls.size()<5 || s.getStudent().getId() == id){
+							resutls.add(dto);							
+						}else{
+							continue;
 						}
 					}
 				}
-				if(!exists){
-					ExamResults stuResults = examResultsRepo.findExamResults(id, examId);
-					ResultsDTO dto = getExamResultDTO(stuResults);
-					dto.setRank(marks.size()+1);
-					resutls.add(getExamResultDTO(stuResults));
-				}
+				
 				return resutls;
 			}
 			return AppResponse.FAIL;
