@@ -31,13 +31,13 @@ public class NotificationService {
 	 private JavaMailSender mailSender;
 	 @Autowired
 	 private SimpleMailMessage preConfiguredMessage;
-	 
+	 public static final String SCHOOL_NAME = "Adam's New Pre Uni College";
     public NotificationService() {
         
     }
 
     public void sendMail(String toEmail, String subject, String message) {
-
+    	try{
     	SimpleMailMessage  mailMessage = new SimpleMailMessage();
 
         mailMessage.setTo(toEmail);
@@ -46,9 +46,13 @@ public class NotificationService {
 
         mailMessage.setFrom("jeeva.mca04@gmail.com");
 
-       // mailSender.send(mailMessage);
+        mailSender.send(mailMessage);
         log.info("Email sent successfully"
         		);
+    	}catch(MailException exp){
+    		log.error(message);
+    		log.error(exp.getLocalizedMessage());
+    	}
     }
     
     @Bean
@@ -104,8 +108,8 @@ public class NotificationService {
 		
 	}
 
-	public void sendCredentials(Users user) {
-		String message = "Dear Parent,\nyour account is activated successfully\n Here is the password: adams@123" 
+	public void sendCredentials(Users user, String pwd) {
+		String message = "Dear "+user.getFirstName()+",\nyour account is activated successfully\n Here is the password: "+pwd 
 				+ "\n\nRegards,\nAdams school,\nAdministrator.";
 		
 		sendMail(user.getEmail(), "Account Verification", message);	
@@ -119,6 +123,13 @@ public class NotificationService {
 		message = message.replace("{actlink}", Constants.ACTIVATE_URL+users.getId());
 		sendMail(users.getEmail(), "Account Verification", message);
 		
+	}
+
+	public void sendResetPassword(String email, String firstName, String password) {
+		String message = "Dear "+firstName+",\nyour account Password is reset successfully.\n Use the following password for your login.\n"
+				+"Password: "+password
+				+ "\n\nRegards,\n"+SCHOOL_NAME+",\nAdministrator.";		
+		sendMail(email, "Account Reset password", message);		
 	}
     
     

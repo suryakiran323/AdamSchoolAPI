@@ -3,6 +3,7 @@ package com.stu.app.service;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -21,6 +22,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import antlr.StringUtils;
+
 import com.stu.app.config.Constants;
 import com.stu.app.dto.Parent;
 import com.stu.app.dto.SignInResponseDTO;
@@ -37,6 +40,9 @@ import com.stu.app.repository.CourseRepo;
 import com.stu.app.repository.StudentRepo;
 import com.stu.app.repository.UsersRepo;
 import com.stu.app.security.TokenProvider;
+import com.stu.app.security.UserRepoService;
+import com.stu.app.util.AesUtil;
+import com.stu.app.util.AppResponse;
 
 @Service
 @Log4j2
@@ -149,7 +155,7 @@ public class AuthenticationService {
 			boolean sendInvite = false;
 			if(postDTO.getSecretkey()==null){
 				sendInvite = true;
-				postDTO.setSecretkey("adams@123");
+				//postDTO.setSecretkey("adams@123");
 			}
 			Users users = getUserObject(postDTO);
 			usersRepo.save(users);
@@ -247,10 +253,16 @@ public class AuthenticationService {
 	public String activeUser(Integer token, HttpServletRequest request) {
 		Users user =  usersRepo.findById(token).get();
 		if(user != null && user.getType().equals(Constants.User.FACULTY)){
+			String password = AesUtil.random(6);
 			user.setStatus(Constants.Status.ACTIVE.toString());
+			if(org.apache.commons.lang3.StringUtils.isBlank(user.getPassword())){
+				user.setPassword(passwordEncoder.encode(password));
+			}else{
+				password = "[hidden]";
+			}
 			usersRepo.save(user);
-			notification.sendCredentials(user);
-			return "<h2>Your account is activated successfuly, check your mail to credentials</h2>";
+			notification.sendCredentials(user, password);
+			return "<h2>Your account is activated successfuly, check your mail for credentials</h2>";
 		}
 		return "<h1>Invalid Token or link got expired.</h1>";
 	}
@@ -299,11 +311,28 @@ public class AuthenticationService {
 				s.setStatus(Constants.Status.ACTIVE.toString());
 				studentRepo.save(s);
 			});
+			String pwd = AesUtil.random(6);
+			user.setPassword(passwordEncoder.encode(pwd));
 			usersRepo.save(user);
-			notification.sendCredentials(user);
+			
+			notification.sendCredentials(user, pwd);
 			return Constants.Response.OK;
 		}
 		return Constants.Response.ERROR;
+	}
+	
+
+	public Object forgotPassword(String email) {
+		Users user = usersRepo.findByEmail(email);
+		if(user == null){
+			throw new AccountsRTException(HttpStatus.BAD_REQUEST,
+					"UserDoesNotExists");
+		}
+		String password = AesUtil.random(6);
+		user.setPassword(passwordEncoder.encode(password));
+		notification.sendResetPassword(email, user.getFirstName(),  password);
+		usersRepo.save(user);
+		return "Check your Email, email sent with password";
 	}
 	
 }

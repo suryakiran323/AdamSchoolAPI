@@ -183,4 +183,19 @@ public class AccountController {
 			return new ResponseEntity<>(new AppResponse(AppResponse.SUCCESS,
 					authenticationService.acceptEnrolment(parentId, status)), HttpStatus.OK);
 		}
+		
+		/**
+		 * @param postDTO
+		 * @param request
+		 * @return
+		 */
+		@PutMapping("resetpassword")
+		public ResponseEntity<AppResponse> forgotPassword(@RequestParam("email") String email,  HttpServletRequest request) {
+			try{
+				return new ResponseEntity<>(new AppResponse(AppResponse.SUCCESS,
+					authenticationService.forgotPassword(email)), HttpStatus.OK);
+			}catch(AccountsRTException ex ){
+		    	return new ResponseEntity<>(new AppResponse(AppResponse.FAIL, ex.getMessage()), ex.getHttpStatus()); 
+		    }
+		}
 }
