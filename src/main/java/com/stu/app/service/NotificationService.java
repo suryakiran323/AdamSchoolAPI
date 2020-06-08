@@ -4,6 +4,7 @@ package com.stu.app.service;
 import java.io.File;
 
 import javax.mail.Message;
+import javax.mail.MessagingException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
@@ -38,18 +39,19 @@ public class NotificationService {
 
     public void sendMail(String toEmail, String subject, String message) {
     	try{
-    	SimpleMailMessage  mailMessage = new SimpleMailMessage();
-
-        mailMessage.setTo(toEmail);
-        mailMessage.setSubject(subject);
-        mailMessage.setText(message);
-
-        mailMessage.setFrom("jeeva.mca04@gmail.com");
-
-        mailSender.send(mailMessage);
-        log.info("Email sent successfully"
-        		);
-    	}catch(MailException exp){
+	    	//SimpleMailMessage  mailMessage = new SimpleMailMessage();
+	    	MimeMessage mimeMessage = mailSender.createMimeMessage();
+	    	MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, "utf-8");
+	    	//mimeMessage.setContent(htmlMsg, "text/html"); /** Use this or below line **/
+	    	helper.setTo(toEmail);
+	    	helper.setSubject(subject);
+	    	helper.setText(message, true);
+	        
+	    	helper.setFrom("jeeva.mca04@gmail.com");
+	
+	        mailSender.send(mimeMessage);
+	        log.info("Email sent successfully" + message);
+    	}catch(MessagingException exp){
     		log.error(message);
     		log.error(exp.getLocalizedMessage());
     	}
@@ -93,8 +95,9 @@ public class NotificationService {
     }
 
 	public void sendToParentMail(Student student) {
-		String message = "Dear Parent,\nyour account is created successfully\n Click on the below link to activate.\n\n<a href='{actlink}'>Activate your account</a>"
-				+ "\n\nRegards,\nAdams school,\nAdministrator.";
+		String message = "Dear "+student.getParent().getFirstName()+",<br/>your account is created successfully"
+				+ "<br/> Click on the below link to activate.<br/><br/><a href='{actlink}'>Activate your account</a>"
+				+ "<br/><br/>Regards,<br/>" + SCHOOL_NAME + ",<br/>Administrator.";
 		
 		message = message.replace("{actlink}", Constants.ACTIVATE_URL+student.getParent().getId());
 		sendMail(student.getParent().getEmail(), "Account Verification", message);	
@@ -102,23 +105,23 @@ public class NotificationService {
 	}
 
 	public void sendToParentStudentAdded(Student student) {
-		String message = "Dear Parent,\nyour account is added new Student into your account\n\nRegards,\nAdams school,\nAdministrator.";
+		String message = "Dear Parent,<br/><br/>your account is added new Student("+student.getFirstName()+") into your account.<br/>You will be notified once its activated.<br/><br/>Regards,<br/>" + SCHOOL_NAME + ",<br/>Administrator.";
 		
-		sendMail(student.getParent().getEmail(), "New Student Added to your Account", message);	
+		sendMail(student.getParent().getEmail(), "New Student Added!", message);	
 		
 	}
 
 	public void sendCredentials(Users user, String pwd) {
-		String message = "Dear "+user.getFirstName()+",\nyour account is activated successfully\n Here is the password: "+pwd 
-				+ "\n\nRegards,\nAdams school,\nAdministrator.";
+		String message = "Dear "+user.getFirstName()+",<br/><br/>your account is activated successfully<br/> Here is the password: "+pwd 
+				+ "<br/><br/>Regards,<br/>" + SCHOOL_NAME + ",<br/>Administrator.";
 		
 		sendMail(user.getEmail(), "Account Verification", message);	
 		
 	}
 
 	public void sendFacultyMail(Users users) {
-		String message = "Dear Faculty,\nyour account is created successfully\n Click on the below link to activate.\n\n<a href='{actlink}'>Activate your account</a>"
-				+ "\n\nRegards,\nAdams school,\nAdministrator.";
+		String message = "Dear "+users.getFirstName()+",<br/>your account is created successfully<br/> Click on the below link to activate.<br/><br/><a href='{actlink}'>Activate your account</a>"
+				+ "<br/><br/>Regards,<br/>" + SCHOOL_NAME + ",<br/>Administrator.";
 		
 		message = message.replace("{actlink}", Constants.ACTIVATE_URL+users.getId());
 		sendMail(users.getEmail(), "Account Verification", message);
@@ -126,9 +129,9 @@ public class NotificationService {
 	}
 
 	public void sendResetPassword(String email, String firstName, String password) {
-		String message = "Dear "+firstName+",\nyour account Password is reset successfully.\n Use the following password for your login.\n"
+		String message = "Dear "+firstName+",<br/>your account Password is reset successfully.<br/> Use the following password for your login.<br/>"
 				+"Password: "+password
-				+ "\n\nRegards,\n"+SCHOOL_NAME+",\nAdministrator.";		
+				+ "<br/><br/>Regards,<br/>"+SCHOOL_NAME+",<br/>Administrator.";		
 		sendMail(email, "Account Reset password", message);		
 	}
     

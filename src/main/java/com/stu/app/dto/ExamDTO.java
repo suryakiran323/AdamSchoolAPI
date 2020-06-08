@@ -15,9 +15,9 @@ public class ExamDTO {
 	Integer key;
 	String name;
 	Integer classId;
-	String description;
 	String type;
 	String className;
+	String subject;
 	Date conductDtm;
 	Date createDtm;
 	Date updateDtm;

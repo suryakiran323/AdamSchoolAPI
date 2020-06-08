@@ -1,6 +1,7 @@
 package com.stu.app.dto;
 
 import java.util.Date;
+import java.util.List;
 
 import lombok.Data;
 
@@ -20,6 +21,8 @@ public class StudentDTO {
 	String relation;
 	String gender;
 	Integer courseId;//selected course ID
+	List<String> subjects;
+	String subject;
 	Integer parentId;
 	String status;
 	String courseName;

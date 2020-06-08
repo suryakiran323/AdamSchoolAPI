@@ -28,7 +28,7 @@ public class Users {
 	String firstName;
 	
 	@Column(name = "last_name")
-	String LastName;
+	String lastName;
 	
 	@Column(name = "middle_name")
 	String middleName;
@@ -57,4 +57,8 @@ public class Users {
 	
 	@Column(name = "updateDtm")
 	Date updateDtm;
+	
+	@ManyToOne
+	@JoinColumn(name = "subjectid")
+	Subject subject;
 }

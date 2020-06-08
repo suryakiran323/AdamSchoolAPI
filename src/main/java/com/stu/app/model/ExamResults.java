@@ -34,28 +34,17 @@ public class ExamResults {
 	@JoinColumn(name = "studentId")
 	Student student;
 	
-	@Column(name = "english")
-	Integer english;
+	@ManyToOne
+	@JoinColumn(name = "subjectId")
+	Subject subject;
 	
-	@Column(name = "maths")
-	Integer maths;
-	
-	@Column(name = "writing")
-	Integer writing;
-	
-	@Column(name = "gen_ability")
-	Integer genAbility;
-	
-	@Column(name = "others")
-	Integer others;
+	@Column(name = "marks")
+	Integer marks;
 	
 	@Column(name = "createDtm")
 	Date createDtm;
 	
 	@Column(name = "updateDtm")
 	Date updateDtm;
-	
-	@Column(name="totalmarks")
-	Integer totalMarks;
 	
 }

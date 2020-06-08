@@ -23,6 +23,10 @@ public interface ExamResultsRepo extends JpaRepository<ExamResults, Integer> {
 
 	ExamResults findByStudentAndExamDetails(Student student, ExamDetails examDetails);
 	
-	@Query("from ExamResults where examDetails.id =:examId Order by totalMarks desc")
+	@Query("from ExamResults where examDetails.id =:examId Order by marks desc")
 	List<ExamResults> getTopStuResults(@Param("examId") Integer examId, Pageable pageable);
+	
+	@Query("from ExamResults where student.id = :studentId and examDetails.subject.name like :subject Order by createDtm")
+	List<ExamResults> findExamResultsBySubjectId(@Param("studentId")Integer studentId, @Param("subject") String subject);
+	
 }

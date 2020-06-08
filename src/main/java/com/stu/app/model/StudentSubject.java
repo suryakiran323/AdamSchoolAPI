@@ -1,7 +1,5 @@
 package com.stu.app.model;
 
-import java.util.Date;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -12,30 +10,24 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 import lombok.Data;
+
 @Entity
-@Table(name = "documents")
+@Table(name = "student_subject")
 @Data
-public class Documents {
+	
+public class StudentSubject {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	Integer id;
+	
+	@ManyToOne
+	@JoinColumn(name = "subjectid")
+	Subject subject;
+	
 	@ManyToOne
 	@JoinColumn(name = "studentid")
 	Student student;
 	
-	@Column(name = "path")
-	String path;
-	
-	@Column(name = "type")
-	String type;
-	
-	@Column(name = "status")
-	Integer status;
-	
-	@Column(name = "createDtm")
-	Date createDtm;
-	
-	@Column(name = "updateDtm")
-	Date updateDtm;
-
+	@Column(name="status")
+	String status;
 }

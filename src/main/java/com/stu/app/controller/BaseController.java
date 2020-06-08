@@ -57,9 +57,13 @@ public class BaseController {
 	@GetMapping("msgs")
 	public ResponseEntity<AppResponse> getMessage(HttpServletRequest request){
 		return new ResponseEntity<>(new AppResponse(AppResponse.SUCCESS,
-				msgService.getMessages(request)), HttpStatus.OK);
+				msgService.getMessages(null, request)), HttpStatus.OK);
 	}
-	
+	@GetMapping("msgs/{touser}")
+	public ResponseEntity<AppResponse> getMessage(@PathVariable("touser") Integer touser, HttpServletRequest request){
+		return new ResponseEntity<>(new AppResponse(AppResponse.SUCCESS,
+				msgService.getMessages(touser,request)), HttpStatus.OK);
+	}
 	@GetMapping("markread/{msgid}")
 	public ResponseEntity<AppResponse> updateMsg(@PathVariable("msgid")Integer msgId,  HttpServletRequest request){
 		return new ResponseEntity<>(new AppResponse(AppResponse.SUCCESS,

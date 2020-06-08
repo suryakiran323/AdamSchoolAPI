@@ -95,7 +95,7 @@ public class AccountController {
 	@PostMapping("createfaculty")
 	  public ResponseEntity<AppResponse> createfactuty(@Valid @RequestBody SignupDTO postDTO,  HttpServletRequest request) {
 	    postDTO.setUsertype(Constants.User.FACULTY);
-		validations.validateSignupObj(postDTO);
+		//validations.validateSignupObj(postDTO);
 	    try{
 	    	return new ResponseEntity<>(new AppResponse(AppResponse.SUCCESS, authenticationService.createUser(postDTO, request)), HttpStatus.OK);
 	    }catch(AccountsRTException ex ){
@@ -111,14 +111,6 @@ public class AccountController {
 	  public ResponseEntity<AppResponse> getFacultyId(@PathVariable("userId") Integer id, HttpServletRequest request) {
 	    return new ResponseEntity<>(new AppResponse(AppResponse.SUCCESS, authenticationService.getUserById(id, request)), HttpStatus.OK);
 	  } 
-	  /**
-	 * @param request
-	 * @return
-	 */
-	@GetMapping("users")
-	  public ResponseEntity<AppResponse> getUsers(HttpServletRequest request) {
-	    return new ResponseEntity<>(new AppResponse(AppResponse.SUCCESS, authenticationService.getUsers(null, request)), HttpStatus.OK);
-	  }  
 	
 	 /**
 	 * @param request
@@ -177,11 +169,11 @@ public class AccountController {
 		 * @param request
 		 * @return
 		 */
-		@PutMapping("acceptenrolment/{parentId}")
-		public ResponseEntity<AppResponse> acceptEnrolment(@PathVariable("parentId") Integer parentId, @RequestParam("status") String status, HttpServletRequest request) {
+		@PutMapping("acceptenrolment/{studentId}")
+		public ResponseEntity<AppResponse> acceptEnrolment(@PathVariable("studentId") Integer stuId, HttpServletRequest request) {
 
 			return new ResponseEntity<>(new AppResponse(AppResponse.SUCCESS,
-					authenticationService.acceptEnrolment(parentId, status)), HttpStatus.OK);
+					authenticationService.acceptEnrolment(stuId)), HttpStatus.OK);
 		}
 		
 		/**

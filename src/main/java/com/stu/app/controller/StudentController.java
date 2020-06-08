@@ -75,24 +75,6 @@ public class StudentController {
 		return new ResponseEntity<>(new AppResponse(AppResponse.SUCCESS,
 				studentService.getStudentById(id, request)), HttpStatus.OK);
 	}
-
-	/**
-	 * @param parentId
-	 * @param courseName
-	 * @param name
-	 * @param request
-	 * @return
-	 */
-	@GetMapping("students/{parentId}")
-	public ResponseEntity<AppResponse> getStudents(
-			@PathVariable("parentId") Integer parentId,
-			@RequestParam(required = false, name = "clourseName") String courseName,
-			@RequestParam(required = false, name = "name") String name,
-			HttpServletRequest request) {
-		return new ResponseEntity<>(new AppResponse(AppResponse.SUCCESS,
-				studentService.getStudents(parentId, courseName + '%',
-						name + '%', request)), HttpStatus.OK);
-	}
 	
 	/**
 	 * @param parentId
@@ -120,8 +102,8 @@ public class StudentController {
 	 */
 	@GetMapping("students")
 	public ResponseEntity<AppResponse> getStudents(
-			@RequestParam(required = false, name = "course") String courseName,
-			@RequestParam(required = false, name = "name", defaultValue="") String name,
+			@RequestParam(required = false, name = "course", defaultValue="") String courseName,
+			@RequestParam(required = false, name = "name",   defaultValue="") String name,
 			HttpServletRequest request) {
 		return new ResponseEntity<>(new AppResponse(AppResponse.SUCCESS,
 				studentService.getStudents(courseName + '%',
@@ -204,9 +186,10 @@ public class StudentController {
 	}
 	
 	@GetMapping("stumarks/{stuid}")
-	public ResponseEntity<AppResponse> getStuMarks(@PathVariable("stuid") Integer id, @RequestParam(name ="examId", required=false)Integer examId , HttpServletRequest request) {
+	public ResponseEntity<AppResponse> getStuMarks(@PathVariable("stuid") Integer id, @RequestParam(name ="examId", required=false)Integer examId,
+			@RequestParam(name ="subject", required=false, defaultValue="")String subject , HttpServletRequest request) {
 		return new ResponseEntity<>(new AppResponse(AppResponse.SUCCESS,
-				studentService.getStudentMarks(id, examId, request)), HttpStatus.OK);
+				studentService.getStudentMarks(id, examId, subject, request)), HttpStatus.OK);
 	}
 	
 	@GetMapping("sturank/{stuid}/{examid}")

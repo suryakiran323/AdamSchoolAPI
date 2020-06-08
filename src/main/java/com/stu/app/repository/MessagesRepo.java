@@ -14,11 +14,11 @@ import com.stu.app.model.Messages;
 public interface MessagesRepo extends JpaRepository<Messages, Integer>{
 
 
-	@Query("from Messages where (fromUserId.id= :userId or toUserId=:userId) and student is null order by createDtm desc")
-	List<Messages> findAllByToUserId(@Param("userId") Integer userId, Pageable pageable);
+	@Query("from Messages where ((fromUserId.id= :userId and toUserId.id=:touserId) or (fromUserId.id= :touserId and toUserId=:userId)) order by createDtm")
+	List<Messages> findAllByToUserId(@Param("touserId") Integer touserId, @Param("userId") Integer userId, Pageable pageable);
 
-	@Query("from Messages where (fromUserId.id= :userId or toUserId=:userId) and unread=:unread and student is null  order by createDtm desc")
-	List<Messages> findAllByToUserId(@Param("userId") Integer userId, @Param("unread") Boolean read, Pageable pageable);
+	@Query("from Messages where ((fromUserId.id= :userId and toUserId.id=:touserId) or (fromUserId.id= :touserId and toUserId=:userId)) and unread=:unread order by createDtm")
+	List<Messages> findAllByToUserId(@Param("touserId") Integer touserId, @Param("userId") Integer userId, @Param("unread") Boolean read, Pageable pageable);
 
 	@Query("from Messages where student.id=:stuid order by createDtm desc")
 	List<Messages> getAllStudentFeedbacks(@Param("stuid") Integer stuid, Pageable pageable);

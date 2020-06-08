@@ -3,8 +3,10 @@ package com.stu.app.service;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -12,6 +14,7 @@ import javax.validation.Valid;
 import lombok.extern.log4j.Log4j2;
 
 import org.apache.commons.beanutils.BeanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
@@ -29,14 +32,20 @@ import com.stu.app.model.Course;
 import com.stu.app.model.ExamDetails;
 import com.stu.app.model.ExamResults;
 import com.stu.app.model.Student;
+import com.stu.app.model.StudentSubject;
+import com.stu.app.model.Subject;
 import com.stu.app.model.Users;
 import com.stu.app.repository.AddressRepo;
 import com.stu.app.repository.CourseRepo;
 import com.stu.app.repository.ExamDetailsRepo;
 import com.stu.app.repository.ExamResultsRepo;
 import com.stu.app.repository.StudentRepo;
+import com.stu.app.repository.StudentSubjectRepo;
+import com.stu.app.repository.SubjectRepo;
 import com.stu.app.repository.UsersRepo;
+import com.stu.app.util.AesUtil;
 import com.stu.app.util.AppResponse;
+
 
 /**
  * @author Admin
@@ -62,20 +71,30 @@ public class StudentService {
 	AddressRepo addressRepo;
 	
 	@Autowired
-	NotificationService notification;
+	StudentSubjectRepo studentSubjectRepo;
 	
-	String dummyPwd = "adams@123";
+	@Autowired
+	SubjectRepo subjectRepo;
+	
+	@Autowired
+	NotificationService notification;
+	@Autowired
+	MsgService msgService;
+	
+	//String dummyPwd = "adams@123";
 	private Users getParentObject(StudentDTO postDTO) {
 		Users users = new Users();
 		try {
 			Address addr = new Address();
-			BeanUtils.copyProperties(addr, postDTO.getParentInfo());
-			BeanUtils.copyProperties(users, postDTO.getParentInfo());
-			addressRepo.save(addr);
-			users.setAddress(addr);
+			if(postDTO!=null && postDTO.getParentInfo()!=null){
+				BeanUtils.copyProperties(addr, postDTO.getParentInfo());
+				BeanUtils.copyProperties(users, postDTO.getParentInfo());
+				addressRepo.save(addr);
+				users.setAddress(addr);
+			}
 			
 			users.setType(Constants.User.PARENT); //Constants.User.FACULTY
-			users.setPassword(passwordEncoder.encode(dummyPwd));
+			users.setPassword(passwordEncoder.encode(AesUtil.random(6)));
 			users.setStatus(Constants.Status.PENDING.toString());
 			users.setCreateDtm(new Date());
 		} catch (Exception e) {
@@ -123,6 +142,21 @@ public class StudentService {
 			}
 			student.setStatus(status); 
 			studentRepo.save(student);
+			//adding subjects to parent
+			if(postDTO.getSubjects()!=null && postDTO.getSubjects().size()>0){
+				Set<StudentSubject> studentSubs = new HashSet<>();
+				postDTO.getSubjects().forEach(s->{
+					Subject subject = subjectRepo.findByName(s);
+					
+					StudentSubject ss = new StudentSubject();
+					ss.setStudent(student);
+					ss.setSubject(subject);
+					ss.setStatus(status);
+					studentSubjectRepo.save(ss);
+					studentSubs.add(ss);
+				});
+				student.setStudentSubjects(studentSubs);
+			}			
 			//sending email
 			if(created){
 				notification.sendToParentMail(student);
@@ -163,7 +197,16 @@ public class StudentService {
 			if (stu.getCourse() != null) {
 				stuDto.setCourseId(stu.getCourse().getId());
 				stuDto.setCourseName(stu.getCourse().getName());
-			}			
+			}	
+			List<StudentSubject> studentSubjects = studentSubjectRepo.findByStudent(stu);
+			
+			if(studentSubjects !=null && studentSubjects.size()>0){
+				List<String> subs = new ArrayList<>();
+				studentSubjects.forEach(s->{
+					subs.add(s.getSubject().getName());
+				});
+				stuDto.setSubjects(subs);
+			}
 			stuDto.setKey(stu.getId());
 
 		} catch (Exception e) {
@@ -202,7 +245,20 @@ public class StudentService {
 				student.setCourse(course);
 			}
 			student.setUpdateDtm(new Date());
-
+			//adding subjects to parent
+			if(postDTO.getSubjects()!=null && postDTO.getSubjects().size()>0){
+				Set<StudentSubject> studentSubs = new HashSet<>();
+				postDTO.getSubjects().forEach(s->{
+					Subject subject = subjectRepo.findByName(s);
+					
+					StudentSubject ss = new StudentSubject();
+					ss.setStudent(student);
+					ss.setSubject(subject);
+					//studentSubjectRepo.save(ss);
+					studentSubs.add(ss);
+				});
+				student.setStudentSubjects(studentSubs);
+			}
 			studentRepo.save(student);
 		} catch (IllegalAccessException e) {
 			log.error(e);
@@ -234,14 +290,21 @@ public class StudentService {
 	}
 	
 	public List<StudentDTO> getStudents(String courseName, String name, HttpServletRequest request) {
-		log.info("name::"+name);
-		List<Student> students = studentRepo.getStudentsByCoursename(courseName, name);
+		
 		List<StudentDTO> dtos = new ArrayList<StudentDTO>();
-
-		students.forEach(s -> {
-			dtos.add(getStudentObject(s));
-
-		});
+		if(request.getAttribute("userType").equals(Constants.User.FACULTY.toString())){
+			log.info("userType::"+request.getAttribute("userType"));
+			Users faculty = usersRepo.findById(Integer.parseInt(request.getAttribute("userId").toString())).get();
+			List<Student> students = studentRepo.getStudentsByCoursename(faculty.getSubject().getId(), courseName, name);
+			students.forEach(s -> {
+				dtos.add(getStudentObject(s));
+			});
+		}else{
+			List<Student> students = studentRepo.getStudentsByCoursename(courseName, name);
+			students.forEach(s -> {
+				dtos.add(getStudentObject(s));
+			});
+		}
 		return dtos;
 	}
 	public Object examCreate(@Valid ExamDTO examDTO, HttpServletRequest request) {
@@ -257,12 +320,15 @@ public class StudentService {
 		if (course == null)
 			throw new AccountsRTException(HttpStatus.BAD_REQUEST,
 					Constants.Response.ERROR.toString());
-
+		Integer uid = (Integer)request.getAttribute("userId");
+		Users faculty = usersRepo.findById(uid).get();
 		ExamDetails newexam = new ExamDetails();
 		try {
 			BeanUtils.copyProperties(newexam, examDTO);
 			newexam.setCourse(course);
 			newexam.setCreateDtm(new Date());
+			newexam.setFaculty(faculty);
+			newexam.setSubject(faculty.getSubject());
 			examDetailsRepo.save(newexam);
 
 			return Constants.Response.OK;
@@ -292,12 +358,15 @@ public class StudentService {
 					Constants.Response.ERROR.toString());
 
 		ExamDetails newexam = examDetailsRepo.findById(examDTO.getKey()).get();
+		Integer uid = (Integer)request.getAttribute("userId");
+		Users faculty = usersRepo.findById(uid).get();
 		try {
 			BeanUtils.copyProperties(newexam, examDTO);
 			newexam.setCourse(course);
-			newexam.setUpdateDtm(new Date());
+			newexam.setCreateDtm(new Date());
+			newexam.setFaculty(faculty);
+			newexam.setSubject(faculty.getSubject());
 			examDetailsRepo.save(newexam);
-
 			return Constants.Response.OK;
 		} catch (IllegalAccessException e) {
 			throw new AccountsRTException(HttpStatus.BAD_REQUEST,
@@ -317,6 +386,11 @@ public class StudentService {
 				examDTO.setClassId(newexam.getCourse().getId());
 				examDTO.setClassName(newexam.getCourse().getName());
 			}
+			if(newexam.getSubject() != null){
+				examDTO.setSubject(newexam.getSubject().getName());
+			}
+			examDTO.setCreateDtm(null);
+			
 			return examDTO;
 		} catch (IllegalAccessException e) {
 			throw new AccountsRTException(HttpStatus.BAD_REQUEST,
@@ -336,39 +410,62 @@ public class StudentService {
 		return getExamDTO(newexam.get());
 	}
 
-	public Object getExamByClassId(Integer id, HttpServletRequest request) {
-		List<ExamDetails> exams = examDetailsRepo.getExamsByCourseId(id);
+	public Object getExamByClassId(Integer classid, HttpServletRequest request) {
+		Integer uid = (Integer)request.getAttribute("userId");
+		//Users faculty = usersRepo.findById(uid).get();
+		List<ExamDetails> exams = examDetailsRepo.getExamsByCourseId(classid, uid);
 		List<ExamDTO> list = new ArrayList<>();
 		exams.forEach(e -> {
 			list.add(getExamDTO(e));
-
 		});
 		return list;
 	}
 
 	public Object addStudentMarks(@Valid ResultsDTO marksDTO, HttpServletRequest request) {
 		Optional<Student> stu = studentRepo.findById(marksDTO.getStudentId());
+		if(!request.getAttribute("userType").equals(Constants.User.FACULTY.toString())){
+			log.info("Loggedin userType::"+request.getAttribute("userType"));			
+		}
 		if(!stu.isPresent()){
 			throw new AccountsRTException(HttpStatus.BAD_REQUEST,
 					Constants.Response.UserDoesNotExists.toString());
 		}
+		Student student = stu.get();
 		Optional<ExamDetails> exam = examDetailsRepo.findById(marksDTO.getExamId());
+		
 		if(!exam.isPresent())
 			throw new AccountsRTException(HttpStatus.BAD_REQUEST,
 					"Exam/Test does not exists");
-		ExamResults resultsExits = examResultsRepo.findByStudentAndExamDetails(stu.get(), exam.get());
+		ExamDetails examDetails = exam.get();
+		boolean hasExam = false;
+		List<StudentSubject> studentSubjects = studentSubjectRepo.findByStudent(student);
+		for (StudentSubject studentSubject : studentSubjects) {
+			if(studentSubject.getSubject().getId() == examDetails.getSubject().getId())
+				hasExam = true;
+		}
+		if(!hasExam){
+			throw new AccountsRTException(HttpStatus.BAD_REQUEST,
+					"Invalid exam for the student.");
+		}
+		ExamResults resultsExits = examResultsRepo.findByStudentAndExamDetails(student, examDetails);
 		if(resultsExits!=null){
 			throw new AccountsRTException(HttpStatus.BAD_REQUEST,
 					"Marks already exists for the student, contact Admin to edit marks for any descripency");
 		}
 		try{
+			Users faculty = usersRepo.findById(Integer.parseInt(request.getAttribute("userId").toString())).get();
 			ExamResults results = new ExamResults();
-			BeanUtils.copyProperties(results, marksDTO);
-			results.setStudent(stu.get());
-			results.setExamDetails(exam.get());
+	
+			results.setStudent(student);
+			results.setExamDetails(examDetails);
 			results.setCreateDtm(new Date());
-			results.setTotalMarks(marksDTO.getEnglish()+marksDTO.getMaths() + marksDTO.getGenAbility() + marksDTO.getWriting());
+			results.setSubject(faculty.getSubject());
+			results.setMarks(marksDTO.getMarks());
 			examResultsRepo.save(results);
+			if(StringUtils.isNoneBlank(marksDTO.getFeedback())){
+			//adding feedback to parent
+				msgService.addMessges(faculty, student.getParent(), student, marksDTO.getFeedback());
+			}
 			return AppResponse.SUCCESS;
 		}catch(Exception e){
 			throw new AccountsRTException(HttpStatus.BAD_REQUEST,
@@ -376,15 +473,18 @@ public class StudentService {
 		}		
 	}
 
-	public Object getStudentMarks(Integer studentId, Integer examId,  HttpServletRequest request) {
+	public Object getStudentMarks(Integer studentId, Integer examId, String subject, HttpServletRequest request) {
 		//Student stu = studentRepo.findById(studentId).get();
 		List<ExamResults> marks = null;
 		if(examId!=null && examId>0){
 			ExamResults marksObj = examResultsRepo.findExamResults(studentId, examId);
-			return getExamResultDTO(marksObj);
+			if(marksObj!=null){
+				return getExamResultDTO(marksObj);
+			}
+			return "No Results found";
 		}else{
 			List<ResultsDTO> resutls = new ArrayList<ResultsDTO>();
-			marks = examResultsRepo.findExamResults(studentId);
+			marks = examResultsRepo.findExamResultsBySubjectId(studentId, subject+"%");
 			if(marks.size()>0){
 				marks.forEach(s->{
 					resutls.add(getExamResultDTO(s));
@@ -396,16 +496,11 @@ public class StudentService {
 
 	private ResultsDTO getExamResultDTO(ExamResults marksObj) {
 		ResultsDTO results = new ResultsDTO();
-		try {
-			BeanUtils.copyProperties(results, marksObj);
-			results.setExamType(marksObj.getExamDetails().getName());
+			results.setExamName(marksObj.getExamDetails().getName());
 			results.setStudentName(marksObj.getStudent().getFirstName() + " " + marksObj.getStudent().getLastName());
 			results.setConductDtm(marksObj.getExamDetails().getConductDtm());
-		} catch (IllegalAccessException e) {
-			log.error(e);
-		} catch (InvocationTargetException e) {
-			log.error(e);
-		}		
+			results.setSubjectId(marksObj.getSubject().getId());
+			results.setMarks(marksObj.getMarks());
 		return results;
 	}
 
@@ -421,6 +516,7 @@ public class StudentService {
 			throw new AccountsRTException(HttpStatus.BAD_REQUEST,
 					Constants.Response.UserDoesNotExists.toString());
 		}
+		Student student = stu.get();
 		Optional<ExamDetails> exam = examDetailsRepo.findById(marksDTO.getExamId());
 		if(!exam.isPresent())
 			throw new AccountsRTException(HttpStatus.BAD_REQUEST,
@@ -430,13 +526,14 @@ public class StudentService {
 			throw new AccountsRTException(HttpStatus.BAD_REQUEST,
 					"Marks already exists for the student, contact Admin to edit marks for any descripency");
 		}
+		Users faculty = usersRepo.findById(Integer.parseInt(request.getAttribute("userId").toString())).get();
 		try{			
-			BeanUtils.copyProperties(results, marksDTO);
-			results.setStudent(stu.get());
+			results.setStudent(student);
 			results.setExamDetails(exam.get());
-			results.setUpdateDtm(new Date());
-			results.setTotalMarks(marksDTO.getEnglish()+marksDTO.getMaths() + marksDTO.getGenAbility() + marksDTO.getWriting());
-			examResultsRepo.save(results);			
+			results.setCreateDtm(new Date());
+			results.setSubject(faculty.getSubject());
+			results.setMarks(marksDTO.getMarks());
+			examResultsRepo.save(results);		
 			return AppResponse.SUCCESS;
 		}catch(Exception e){
 			throw new AccountsRTException(HttpStatus.BAD_REQUEST,
@@ -456,18 +553,17 @@ public class StudentService {
 							break;
 						}
 						ResultsDTO dto = new ResultsDTO();
-						dto.setExamType(s.getExamDetails().getName());
+						dto.setExamName(s.getExamDetails().getName());
 						dto.setStudentName(s.getStudent().getFirstName() + " " + s.getStudent().getLastName());
 						dto.setRank(myrank);
-						dto.setTotalmarks(s.getTotalMarks());
+						dto.setMarks(s.getMarks());
 						if(resutls.size()<5 || s.getStudent().getId() == id){
 							resutls.add(dto);							
 						}else{
 							continue;
 						}
 					}
-				}
-				
+				}				
 				return resutls;
 			}
 			return AppResponse.FAIL;

@@ -17,7 +17,7 @@ public interface ExamDetailsRepo extends JpaRepository<ExamDetails, Integer> {
 	ExamDetails findExamDetailBynameClassId(@Param("name") String name, @Param("classId") Integer classId,
 			@Param("cdtm")Date conductDtm);
 	
-	@Query("from ExamDetails where course.id =:id")
-	List<ExamDetails> getExamsByCourseId(@Param("id") Integer id);
+	@Query("from ExamDetails where course.id =:id and faculty.id=:uid")
+	List<ExamDetails> getExamsByCourseId(@Param("id") Integer classId, @Param("uid") Integer uid);
 
 }

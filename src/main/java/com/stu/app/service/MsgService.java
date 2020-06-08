@@ -44,33 +44,31 @@ public class MsgService {
 	 * @return
 	 */
 	public Object sendMsg(@Valid MsgDTO postDTO, HttpServletRequest request) {
-		Optional<Users> fromUser = usersRepo.findById(postDTO.getFromUserId());
-		if(!fromUser.isPresent()){
-			Integer userId = (Integer)request.getAttribute("userId");
-			fromUser = usersRepo.findById(userId);
-		}
+		Integer userId = (Integer)request.getAttribute("userId");
+		Optional<Users> fromUser = usersRepo.findById(userId);
+		
 		Optional<Users> toUser = usersRepo.findById(postDTO.getToUserId());
 		if(!toUser.isPresent()){
 			log.error("To User Id not present in the input");
 			throw new AccountsRTException(HttpStatus.BAD_REQUEST,
 					"To User Id not present");
 		}
-		Optional<Student> stuOpt = studentRepo.findById(postDTO.getStudentId());
+		Optional<Student> stuOpt = studentRepo.findById(postDTO.getStudentId()!=null?postDTO.getStudentId():0);
+		addMessges(fromUser.get(), toUser.get(),(stuOpt.isPresent())?stuOpt.get():null, postDTO.getMessage());
 		
-		Messages msg = new Messages();
-		msg.setCreateDtm(new Date());
-		msg.setFromUserId(fromUser.get());
-		msg.setToUserId(toUser.get());
-		msg.setMessage(postDTO.getMessage());
-		msg.setViewInd(Boolean.FALSE);
-		if(stuOpt.isPresent()){
-			msg.setStudent(stuOpt.get());
-		}
-		msgRepo.save(msg);
 		return AppResponse.SUCCESS;
 	}
-
-	public Object  getMessages(HttpServletRequest request) {
+	public void addMessges(Users fromUser, Users toUser, Student student, String message){
+		Messages msg = new Messages();
+		msg.setCreateDtm(new Date());
+		msg.setFromUserId(fromUser);
+		msg.setToUserId(toUser);
+		msg.setMessage(message);
+		msg.setViewInd(Boolean.FALSE);
+		msg.setStudent(student);		
+		msgRepo.save(msg);
+	}
+	public Object  getMessages(Integer touserId, HttpServletRequest request) {
 		Integer userId = (Integer)request.getAttribute("userId");
 		Boolean unread = Boolean.getBoolean(request.getParameter("unread"));
 		Integer size = 20;
@@ -79,12 +77,12 @@ public class MsgService {
 			size = Integer.parseInt(request.getParameter("size"));
 		if(request.getParameter("offset") != null)
 			offset = Integer.parseInt(request.getParameter("offset"));
-
+		
 		List<Messages> msgs = null;
 		if(unread)
-			msgs = msgRepo.findAllByToUserId(userId,unread,  PageRequest.of(offset, size));
+			msgs = msgRepo.findAllByToUserId(userId, touserId, unread,  PageRequest.of(offset, size));
 		else
-			msgs = msgRepo.findAllByToUserId(userId,  PageRequest.of(offset, size));
+			msgs = msgRepo.findAllByToUserId(userId, touserId, PageRequest.of(offset, size));
 		List<MsgDTO> msgDto = new ArrayList<MsgDTO>();
 		msgs.forEach(m->{
 			MsgDTO msgdto = new MsgDTO();
@@ -94,6 +92,8 @@ public class MsgService {
 			msgdto.setToUserId(m.getToUserId().getId());
 			msgdto.setFromName(userId == m.getFromUserId().getId()?"Me":m.getFromUserId().getFirstName());
 			msgdto.setToName(userId == m.getToUserId().getId()?"Me":m.getToUserId().getFirstName());
+			if(m.getStudent()!=null)
+				msgdto.setStudentName(m.getStudent().getFirstName()+" "+ m.getStudent().getLastName());
 			msgDto.add(msgdto);
 		});
 		return msgDto;
@@ -136,7 +136,8 @@ public class MsgService {
 			msgdto.setToUserId(m.getToUserId().getId());
 			msgdto.setFromName(userId == m.getFromUserId().getId()?"Me":m.getFromUserId().getFirstName());
 			msgdto.setToName(userId == m.getToUserId().getId()?"Me":m.getToUserId().getFirstName());
-			msgdto.setStudentname(m.getStudent().getFirstName()+" "+ m.getStudent().getLastName());
+			if(m.getStudent()!=null)
+				msgdto.setStudentName(m.getStudent().getFirstName()+" "+ m.getStudent().getLastName());
 			msgDto.add(msgdto);
 		});
 		return msgDto;

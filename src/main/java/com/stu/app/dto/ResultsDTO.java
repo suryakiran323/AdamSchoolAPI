@@ -14,19 +14,15 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 public class ResultsDTO {
 	Integer key;
 	Integer examId;
-	String examType;
+	String examName;
 	Integer rank;
 	
 	Integer studentId;
 	String studentName;
 	
-	Integer english;
-	Integer maths;
-	Integer writing;
-	Integer genAbility;
-	Integer others;
+	Integer subjectId;
+	Integer marks;
+	String feedback;
 	
-	Integer totalmarks;
 	Date conductDtm;
-	
 }

@@ -15,7 +15,7 @@ import lombok.Data;
 
 /**
  * @author Admin
- *Student Class course details
+ *
  */
 @Entity
 @Table(name = "examdetails")
@@ -33,8 +33,13 @@ public class ExamDetails {
 	@JoinColumn(name = "courseId")
 	Course course;
 	
-	@Column(name = "description")
-	String description;
+	@ManyToOne
+	@JoinColumn(name = "facultyId")
+	Users faculty;
+	
+	@ManyToOne
+	@JoinColumn(name = "subjectId")
+	Subject subject;
 	
 	@Column(name = "type")
 	String type;

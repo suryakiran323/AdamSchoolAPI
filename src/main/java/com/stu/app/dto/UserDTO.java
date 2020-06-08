@@ -27,6 +27,6 @@ public class UserDTO {
 	String country;
 	String type;
 	Date createDtm;
-	
+	String subject;
 	Date updateDtm;
 }

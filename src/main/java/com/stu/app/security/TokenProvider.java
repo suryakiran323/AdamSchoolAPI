@@ -23,7 +23,6 @@ import org.springframework.util.StringUtils;
 
 import com.stu.app.model.Users;
 import com.stu.app.repository.UsersRepo;
-import com.stu.app.util.AesUtil;
 
 @Component
 @Slf4j
@@ -120,19 +119,15 @@ public class TokenProvider {
       .parseClaimsJws(jwt)
       .getBody();
 
-    /*JsonArray list = redisService.getTokensJsonArray(claims.getSubject() + "");
-    boolean tokenExists = false;
-    for (int i = 0; i < list.size(); i++) {
-      if (jwt.trim().equalsIgnoreCase(list.get(i).toString().substring(1, list.get(i).toString().length() - 1))) {
-        tokenExists = true;
-      }
-    }
-    if (!tokenExists) {
-      throw new NexcoRTException(HttpStatus.UNAUTHORIZED, "You are unauthorized to access this resource");
-    }*/
     return Integer.parseInt(claims.getSubject());
   }
-
+  public String getUserTypeFromJWT(String jwt) {
+	    Claims claims = Jwts.parser()
+	      .setSigningKey(jwtSecret)
+	      .parseClaimsJws(jwt)
+	      .getBody();
+	    return claims.get("utype").toString();
+	  }
   /**
    * method to get user id from request
    *
