@@ -2,6 +2,8 @@ package com.stu.app.service;
 
 
 import java.io.File;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -33,6 +35,9 @@ public class NotificationService {
 	 @Autowired
 	 private SimpleMailMessage preConfiguredMessage;
 	 public static final String SCHOOL_NAME = "Adam's New Pre Uni College";
+	 public static final int noOfQuickServiceThreads = 20;
+	 private ScheduledExecutorService quickService = Executors.newScheduledThreadPool(noOfQuickServiceThreads);
+	 
     public NotificationService() {
         
     }
@@ -49,8 +54,20 @@ public class NotificationService {
 	        
 	    	helper.setFrom("jeeva.mca04@gmail.com");
 	
-	        mailSender.send(mimeMessage);
-	        log.info("Email sent successfully" + message);
+	        
+	        quickService.submit(new Runnable() {
+				@Override
+				public void run() {
+					try{
+						mailSender.send(mimeMessage);
+						 log.info("Email sent successfully");
+					}catch(Exception e){
+						log.error("Exception occur while send a mail : ",e);
+					}
+				}
+			});
+	        
+	        log.info("Email Content:" + message);
     	}catch(MessagingException exp){
     		log.error(message);
     		log.error(exp.getLocalizedMessage());
