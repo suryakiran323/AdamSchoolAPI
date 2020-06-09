@@ -412,8 +412,14 @@ public class StudentService {
 
 	public Object getExamByClassId(Integer classid, HttpServletRequest request) {
 		Integer uid = (Integer)request.getAttribute("userId");
+		String utype = (String)request.getAttribute("userType");
 		//Users faculty = usersRepo.findById(uid).get();
-		List<ExamDetails> exams = examDetailsRepo.getExamsByCourseId(classid, uid);
+		List<ExamDetails> exams;
+		if(utype.equals(Constants.User.FACULTY)){
+			exams = examDetailsRepo.getExamsByCourseId(classid, uid);
+		}else{
+			exams = examDetailsRepo.getExamsByCourseId(classid);
+		}
 		List<ExamDTO> list = new ArrayList<>();
 		exams.forEach(e -> {
 			list.add(getExamDTO(e));
