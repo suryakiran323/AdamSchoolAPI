@@ -158,10 +158,18 @@ public class StudentService {
 				student.setStudentSubjects(studentSubs);
 			}			
 			//sending email
-			if(created){
-				notification.sendToParentMail(student);
+			if(status.equals(Constants.Status.PENDING.toString())){
+				if(created){
+					notification.sendToParentMail(student);
+				}else{
+					notification.sendToParentStudentAdded(student);
+				}
 			}else{
-				notification.sendToParentStudentAdded(student);
+				if(created){
+					notification.sendFacultyMail(student.getParent());
+				}else{
+					notification.sendToParentStudentAdded(student);
+				}
 			}
 			return Constants.Response.OK;
 		} catch (Exception e) {

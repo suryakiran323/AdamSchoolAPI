@@ -112,13 +112,12 @@ public class NotificationService {
     }
 
 	public void sendToParentMail(Student student) {
-		String message = "Dear "+student.getParent().getFirstName()+",<br/>your account is created successfully"
-				+ "<br/> Click on the below link to activate.<br/><br/><a href='{actlink}'>Activate your account</a>"
+		String message = "Dear "+student.getParent().getFirstName()+",<br/>"
+				+ "<br/> You are enrolled for "+student.getFirstName()+". You will be notified when administrator activate it."
 				+ "<br/><br/>Regards,<br/>" + SCHOOL_NAME + ",<br/>Administrator.";
 		
 		message = message.replace("{actlink}", Constants.ACTIVATE_URL+student.getParent().getId());
-		sendMail(student.getParent().getEmail(), "Account Verification", message);	
-		
+		sendMail(student.getParent().getEmail(), "Account Verification", message);		
 	}
 
 	public void sendToParentStudentAdded(Student student) {

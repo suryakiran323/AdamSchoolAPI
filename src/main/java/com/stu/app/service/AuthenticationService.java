@@ -264,7 +264,7 @@ public class AuthenticationService {
 
 	public String activeUser(Integer token, HttpServletRequest request) {
 		Users user =  usersRepo.findById(token).get();
-		if(user != null && user.getType().equals(Constants.User.FACULTY)){
+		if(user != null){
 			String password = AesUtil.random(6);
 			user.setStatus(Constants.Status.ACTIVE.toString());
 			if(StringUtils.isBlank(user.getPassword())){
