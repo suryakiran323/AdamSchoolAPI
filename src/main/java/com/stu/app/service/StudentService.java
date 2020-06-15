@@ -554,6 +554,7 @@ public class StudentService {
 					e.getMessage().toString());
 		}		
 	}
+	String[] albhabets = {"A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q"};
 	public Object getStuRank(Integer id, Integer examId, HttpServletRequest request) {
 			List<ResultsDTO> resutls = new ArrayList<>();	
 		List<ExamResults> marks = null;
@@ -568,7 +569,10 @@ public class StudentService {
 						}
 						ResultsDTO dto = new ResultsDTO();
 						dto.setExamName(s.getExamDetails().getName());
-						dto.setStudentName(s.getStudent().getFirstName() + " " + s.getStudent().getLastName());
+						if(s.getStudent().getId() == id)
+							dto.setStudentName(s.getStudent().getFirstName() + " " + s.getStudent().getLastName());
+						else
+							dto.setStudentName(albhabets[resutls.size()]);
 						dto.setRank(myrank);
 						dto.setMarks(s.getMarks());
 						if(resutls.size()<5 || s.getStudent().getId() == id){
